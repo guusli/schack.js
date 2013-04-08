@@ -30,8 +30,65 @@ var board = [BLACK_ROOK, BLACK_KNIGHT, BLACK_BISHOP, BLACK_QUEEN, BLACK_KING, BL
 
 
 function makeMove(from, to){
+    isMovePseudoLegal(from, to);
     board[to] = board[from];
     board[from] = 0;
+}
+
+function isMovePseudoLegal(from, to/*, currentPlayer*/){
+
+    var fromPiece = board[from];
+    var toPiece = board[to];
+
+    if(!fromPiece){ // Moving an empty square?
+        return false;
+    }
+
+    // Moving outside board
+
+    // Can't attack own piece
+
+    var pieceType = Math.abs(fromPiece);
+
+   debugger;
+    if(pieceType === QUEEN){
+        if(!(Math.abs(from - to) % 9 == 0   || 
+            Math.abs(from - to) % 7  == 0 ||
+            Math.abs(from - to) % 8  == 0 ||
+            Math.floor(Math.abs(from)/8) == Math.floor(Math.abs(to)/8))) {
+
+
+            return false;
+        }
+    } else if(pieceType === ROOK) {
+        if(!(Math.abs(from - to) % 8  == 0 ||
+            Math.floor(Math.abs(from)/8) == Math.floor(Math.abs(to)/8))) {
+
+            return false;
+        }
+
+    } else if(pieceType === BISHOP) {
+        if(!(Math.abs(from - to) % 9 == 0   || 
+            Math.abs(from - to) % 7  == 0)) {
+
+            return false;
+        }
+
+    } else if(pieceType === KNIGHT) {
+
+        // TODO
+
+    } else if(pieceType === PAWN) {
+
+        // TODO
+
+    } else if(pieceType === KING) {
+
+        // TODO
+
+    } else {
+        return false;
+    }
 }
 
 
