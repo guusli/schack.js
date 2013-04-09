@@ -249,15 +249,17 @@ $(function(){
 
 function drawBoard(board){
     var str = '';
+    var tileNumbers = true;
     for( var i = 0 ; i < 8 ; i++ ){
         str += '<div class="row">';
         for( var j = 0 ; j < 8 ; j++ ){
             str += '<div class="column ' +
             ( (i + j) % 2 === 0 ? 'light': 'dark') + ' "' + 'data-square="' + ((8*i)+(j)) + '" >' +
-            '<div class="' + getPieceName(board[(8*i)+(j)]) + ' ui-widget-content">'+
-            + ((8*i)+(j)) + 
-            '</div>' +
-            '</div>';
+            '<div class="' + getPieceName(board[(8*i)+(j)]) + ' ui-widget-content">';
+            if(tileNumbers) { 
+                str += ((8*i)+(j));
+            }
+            str += '</div>' + '</div>';
         }
         str += '</div>';
     }
