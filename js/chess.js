@@ -19,6 +19,8 @@ var BLACK_BISHOP = -WHITE_BISHOP;
 var BLACK_KNIGHT = -WHITE_KNIGHT;
 var BLACK_PAWN = -WHITE_PAWN;
 
+var kingPositions = {};
+
 var board = [BLACK_ROOK, BLACK_KNIGHT, BLACK_BISHOP, BLACK_QUEEN, BLACK_KING, BLACK_BISHOP, BLACK_KNIGHT, BLACK_ROOK,
              BLACK_PAWN, BLACK_PAWN, BLACK_PAWN, BLACK_PAWN, BLACK_PAWN, BLACK_PAWN, BLACK_PAWN, BLACK_PAWN,
              0,0,0,0,0,0,0,0,
@@ -30,14 +32,44 @@ var board = [BLACK_ROOK, BLACK_KNIGHT, BLACK_BISHOP, BLACK_QUEEN, BLACK_KING, BL
 
 
 function makeMove(from, to){
-    if(!isMovePseudoLegal(from, to)) {return false;}
+
+    var replaced = board[to];
+
     board[to] = board[from];
     board[from] = 0;
 
     currentPlayer = currentPlayer * -1;
+
+    return replaced;
 }
 
-function isMovePseudoLegal(from, to/*, currentPlayer*/){
+function unMakeMove(from, to, replaced){
+    board[from] = board[to];
+    board[to] = replaced;
+
+
+    currentPlayer = currentPlayer * -1;
+
+    return true;
+}
+
+function isMoveLegal(from, to) {
+    debugger;
+    return isMovePseudoLegal(from, to, currentPlayer) && !(leavesCheckAfterMove(from, to));
+}
+
+function leavesCheckAfterMove(from, to) {
+    var toContent = makeMove(from, to);
+
+    var kingUnderAttack = isKingUnderAttack();
+    unMakeMove(from, to, toContent);
+
+    return kingUnderAttack
+
+
+}
+
+function isMovePseudoLegal(from, to, currentPlayer){
 
 
     var fromPiece = board[from];
@@ -103,8 +135,6 @@ function isMovePseudoLegal(from, to/*, currentPlayer*/){
         var diff = Math.abs(from - to);
 
         var row = Math.ceil(Math.abs(from)/8);
-        console.log("Diff: " + diff);
-        console.log("Row: " + row);
 
          if( direction !== currentPlayer ){ // a pawn can only move forward
             return false;
@@ -128,6 +158,8 @@ function isMovePseudoLegal(from, to/*, currentPlayer*/){
             return false;
         }
 
+        return true;
+
         // TODO - En passant
 
     } else if(pieceType === KING) {
@@ -135,7 +167,7 @@ function isMovePseudoLegal(from, to/*, currentPlayer*/){
         var diff = Math.abs(from - to);
 
         if( diff === 1  || diff === 9 || diff === 7 || diff === 8 ){
-            // valid
+            kingPositions[currentPlayer] = to;
         }
         else {
             return false;
@@ -150,7 +182,6 @@ function isMovePseudoLegal(from, to/*, currentPlayer*/){
     if(pieceType == QUEEN || pieceType == ROOK ||
         pieceType == BISHOP) { // sliding piece
 
-        console.log("Sliding");
         var diff = to - from;
         var step;
 
@@ -181,16 +212,29 @@ function isMovePseudoLegal(from, to/*, currentPlayer*/){
     return true;
 }
 
+function isKingUnderAttack(){
+    var kingPosition = kingPositions[currentPlayer * -1]; // makeMove changes player => -1*current
+
+    for( var i = 0 ; i < 64 ; i++ ){
+        if(board[i]){
+            if(isMovePseudoLegal(i, kingPosition, currentPlayer)){ 
+                return true;
+            }
+        }
+    }
+    return false;
+}
+
 
 var onDrop = function(event, ui) {
     var from = ui.draggable.parent().data('square');
     var to = $(this).data('square');
     
-    //if(validateMove(from, to, currentPlayer)){
+    if(isMoveLegal(from, to)){
         makeMove(from, to);
-    //}else{
+    } else {
         // don't touch the board.
-    //}
+    }
     setTimeout(function(){drawBoard(board);},50);
 }
 
@@ -198,12 +242,10 @@ $(function(){
     drawBoard(board);
 
     currentPlayer = -1;
+    kingPositions[-1] = 60;
+    kingPositions[1] = 4;
 });
 
-function handleDragStart(e) {
-    console.log(e);
-  this.style.background = 'blue';  // this / e.target is the source node.
-}
 
 function drawBoard(board){
     var str = '';

@@ -17,14 +17,14 @@
 #board .column {
     height: 50px;
     width: 50px;
-    background: #F8ECC9;
+    background: #EED8B7;
     float: left;
     font-size: 10px;
     font-family: Arial;
 }
 
 #board .column.dark {
-    background: #99B2B7;
+    background: #B08967;
 }
 
 #board .column.off {
