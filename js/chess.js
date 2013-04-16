@@ -21,22 +21,37 @@ var BLACK_PAWN = -WHITE_PAWN;
 
 var kingPositions = {};
 
-var board = [BLACK_ROOK, BLACK_KNIGHT, BLACK_BISHOP, BLACK_QUEEN, BLACK_KING, BLACK_BISHOP, BLACK_KNIGHT, BLACK_ROOK,
-             BLACK_PAWN, BLACK_PAWN, BLACK_PAWN, BLACK_PAWN, BLACK_PAWN, BLACK_PAWN, BLACK_PAWN, BLACK_PAWN,
-             0,0,0,0,0,0,0,0,
-             0,0,0,0,0,0,0,0,
-             0,0,0,0,0,0,0,0,
-             0,0,0,0,0,0,0,0,
-             WHITE_PAWN, WHITE_PAWN, WHITE_PAWN, WHITE_PAWN, WHITE_PAWN, WHITE_PAWN, WHITE_PAWN, WHITE_PAWN,
-             WHITE_ROOK, WHITE_KNIGHT, WHITE_BISHOP, WHITE_QUEEN, WHITE_KING, WHITE_BISHOP, WHITE_KNIGHT, WHITE_ROOK];
+var board;
+
+
+/**************************************************
+** GAME INITIALISATION
+**************************************************/
+function init() {
+    board = new Board();
+
+    animate();
+
+    currentPlayer = -1;
+    kingPositions[-1] = 60;
+    kingPositions[1] = 4;
+
+    setDragAndDropHandlers();
+}
+
+/**************************************************
+** GAME EVENT HANDLERS
+**************************************************/
+
 
 
 function makeMove(from, to){
 
-    var replaced = board[to];
+    var replaced = board.getPosition(to);;
 
-    board[to] = board[from];
-    board[from] = 0;
+
+    board.setPosition(to, board.getPosition(from));
+    board.setPosition(from, 0);
 
     currentPlayer = currentPlayer * -1;
 
@@ -44,8 +59,8 @@ function makeMove(from, to){
 }
 
 function unMakeMove(from, to, replaced){
-    board[from] = board[to];
-    board[to] = replaced;
+    board.setPosition(from, board.getPosition(to));
+    board.setPosition(to, replaced);
 
 
     currentPlayer = currentPlayer * -1;
@@ -54,7 +69,6 @@ function unMakeMove(from, to, replaced){
 }
 
 function isMoveLegal(from, to) {
-    debugger;
     return isMovePseudoLegal(from, to, currentPlayer) && !(leavesCheckAfterMove(from, to));
 }
 
@@ -72,8 +86,8 @@ function leavesCheckAfterMove(from, to) {
 function isMovePseudoLegal(from, to, currentPlayer){
 
 
-    var fromPiece = board[from];
-    var toPiece = board[to];
+    var fromPiece = board.getPosition(from);
+    var toPiece = board.getPosition(to);
 
     if(!fromPiece){ // Moving an empty square?
         return false;
@@ -203,7 +217,7 @@ function isMovePseudoLegal(from, to, currentPlayer){
 
         var path = from + step;
         for(var i = 1; i < iterations; i++, path+=step){
-            if(board[path]){
+            if(board.getPosition(path)){
                 return false;
             }
         }
@@ -216,7 +230,7 @@ function isKingUnderAttack(){
     var kingPosition = kingPositions[currentPlayer * -1]; // makeMove changes player => -1*current
 
     for( var i = 0 ; i < 64 ; i++ ){
-        if(board[i]){
+        if(board.getPosition(i) ){
             if(isMovePseudoLegal(i, kingPosition, currentPlayer)){ 
                 return true;
             }
@@ -235,41 +249,29 @@ var onDrop = function(event, ui) {
     } else {
         // don't touch the board.
     }
-    setTimeout(function(){drawBoard(board);},50);
+    setTimeout(function(){animate()},50);
 }
 
-$(function(){
-    drawBoard(board);
+/**************************************************
+** GAME ANIMATION LOOP
+**************************************************/
+function animate() {
+    draw();
+    setDragAndDropHandlers();
+}
 
-    currentPlayer = -1;
-    kingPositions[-1] = 60;
-    kingPositions[1] = 4;
-});
+function draw() {
+    board.draw();
+}
 
-
-function drawBoard(board){
-    var str = '';
-    var tileNumbers = true;
-    for( var i = 0 ; i < 8 ; i++ ){
-        str += '<div class="row">';
-        for( var j = 0 ; j < 8 ; j++ ){
-            str += '<div class="column ' +
-            ( (i + j) % 2 === 0 ? 'light': 'dark') + ' "' + 'data-square="' + ((8*i)+(j)) + '" >' +
-            '<div class="' + getPieceName(board[(8*i)+(j)]) + ' ui-widget-content">';
-            if(tileNumbers) { 
-                str += ((8*i)+(j));
-            }
-            str += '</div>' + '</div>';
-        }
-        str += '</div>';
-    }
-    $('#board').html(str);
-
+var setDragAndDropHandlers = function() {
     $( ".column div" ).draggable({ revert: "invalid" });
+
     $( ".column" ).droppable({
         drop: onDrop
     });
 }
+
 
 function getPieceName(pieceValue){
     switch (pieceValue) {
